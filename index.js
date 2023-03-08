@@ -1,13 +1,29 @@
 const fileInput = document.getElementById('html-file-input');
+const sanitizeHtml = require('sanitize-html');
 
-const titleTag = 'h2';
+const options = {
+  allowedTags: ['h1', 'p', 'ul', 'ol', 'li', 'a'],
+  allowedAttributes: {
+    a: ['href'],
+  },
+  exclusiveFilter: (frame) => {
+    return frame.tag === 'span' && !frame.text.trim();
+  },
+};
+
+const titleTag = 'H1'; // Add this line to define titleTag
+
+function sanitize(html) {
+  return sanitizeHtml(html, options);
+}
 
 fileInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
   const reader = new FileReader();
 
   reader.onload = (event) => {
-    const html = event.target.result;
+    const result = event.target.result;
+    const html = sanitize(result);
     const blocks = {};
     let blockCount = 0;
     let currentTitle = '';
@@ -23,11 +39,18 @@ fileInput.addEventListener('change', (event) => {
       let current = header.nextSibling;
 
       while (current && current.nodeName !== titleTag) {
-        if (current.nodeName === 'P' || current.nodeName == 'LI') {
-          console.log(current);
-          paragraphs.push(current.textContent.trim());
+        if (
+          current.nodeName === 'P' ||
+          current.nodeName === 'LI' ||
+          current.nodeName === 'UL'
+        ) {
+          const content = current.outerHTML
+            .replace(/<\/?span[^>]*>/g, '')
+            .trim();
+          if (content) {
+            paragraphs.push(content);
+          }
         }
-
         current = current.nextSibling;
       }
 
@@ -48,6 +71,7 @@ fileInput.addEventListener('change', (event) => {
     Object.keys(blocks).forEach((key) => {
       const block = blocks[key];
 
+      console.log(block);
       const textComponent = {
         _id: `c-${key.slice(5)}-01`,
         _parentId: `b-${key.slice(5)}`,
@@ -183,6 +207,7 @@ fileInput.addEventListener('change', (event) => {
         block.title.slice(0, 2) == 'Q:' ||
         block.title.slice(0, 7) == 'Question'
       ) {
+        conosle.log(finalStructure)
         finalStructure.push(questionComponent);
         finalStructure.push(graphicComponent);
       } else {
