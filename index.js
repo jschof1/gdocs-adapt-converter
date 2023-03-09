@@ -246,3 +246,4 @@ function buildObjectFromHtml(htmlString) {
 }
 
 // const blocks = RETURN THE OBJECT FROM THE FUNCTION ABOVE
+

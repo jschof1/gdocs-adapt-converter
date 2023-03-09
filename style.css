@@ -3,22 +3,21 @@
 }
 
 body {
-  color: white;
-  background-color: rgb(70, 146, 190);
+  color: black;
   padding: 10px;
 }
 .container {
+  border-radius: 5px;
+  background-color: rgb(70, 146, 190);
+  color: white;
   padding: 10px;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 3px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 2px rgba(70, 146, 190), 0 3px 8px 0 rgba(70, 146, 190);
 }
+
 
 input,
 button {
   margin: 10px;
-}
-
-li {
-  list-style-type: none;
 }
 
 .important {
@@ -27,7 +26,7 @@ li {
 /* CSS */
 button {
   background: #da3f3f;
-  border-radius: 12px;
+  border-radius: 5px;
   color: white;
   cursor: pointer;
   font-weight: bold;
@@ -46,12 +45,5 @@ button:not(:disabled):hover,
 button:not(:disabled):focus {
   outline: 0;
   color: white;
-  background: #ff00009a;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 3px 8px 0 rgba(0, 0, 0, 0.15);
-}
-
-button:disabled {
-  filter: saturate(0.2) opacity(0.5);
-  -webkit-filter: saturate(0.2) opacity(0.5);
-  cursor: not-allowed;
+  background: #360202de;
 }
