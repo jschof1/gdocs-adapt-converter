@@ -1,3 +1,6 @@
+// Import stylesheets
+import './style.css';
+
 const sanitizeHtml = require('sanitize-html');
 const fileInput = document.getElementById('html-file-input');
 fileInput.addEventListener('change', handleFileSelect, false);

@@ -1,3 +1,57 @@
-h1, h2 {
-  font-family: Lato;
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  color: white;
+  background-color: rgb(70, 146, 190);
+  padding: 10px;
+}
+.container {
+  padding: 10px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 3px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+input,
+button {
+  margin: 10px;
+}
+
+li {
+  list-style-type: none;
+}
+
+.important {
+  margin: 20px;
+}
+/* CSS */
+button {
+  background: #da3f3f;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 10px 15px;
+  text-align: center;
+  transition: 200ms;
+  box-sizing: border-box;
+  border: 0;
+  font-size: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+button:not(:disabled):hover,
+button:not(:disabled):focus {
+  outline: 0;
+  color: white;
+  background: #ff00009a;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 3px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+button:disabled {
+  filter: saturate(0.2) opacity(0.5);
+  -webkit-filter: saturate(0.2) opacity(0.5);
+  cursor: not-allowed;
 }
