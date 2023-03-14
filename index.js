@@ -245,5 +245,97 @@ function buildObjectFromHtml(htmlString) {
   downloadButton2.href = downloadJSON(finalBlocks);
 }
 
-// const blocks = RETURN THE OBJECT FROM THE FUNCTION ABOVE
+const accessKey = '9LXDDGlaugPL-wa3s3wDSs5iNZOfdy8WW5DSLqg8-e0';
+const url = `https://api.unsplash.com/photos/random/?client_id=${accessKey}`;
+function searchImages() {
+  // Get the search terms from the text area
+  const searchTerms = document.getElementById('searchTerms').value;
 
+  // Split the search terms into an array
+  const termsArray = searchTerms.split('\n');
+
+  // Create an array to hold the image metadata
+  const imageMetadata = [];
+
+  // Loop through each search term and fetch the corresponding images
+  termsArray.forEach((term) => {
+    fetch(
+      `https://api.unsplash.com/search/photos?query=${term}&per_page=1&client_id=${accessKey}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        // Loop through each image URL and download the image
+        data.results.forEach((result) => {
+          // Create an <img> element with the src attribute set to the image URL
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = result.urls.raw;
+
+          // Wait for the image to load and then create a canvas element to draw the image as a 500x500 square
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1000;
+            canvas.height = 1000;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 1000, 1000);
+
+            // Convert the canvas element to a Blob object and create a URL for the Blob
+            canvas.toBlob(
+              (blob) => {
+                const url = URL.createObjectURL(blob);
+
+                // Add the image metadata to the imageMetadata array
+                imageMetadata.push({
+                  name: result.alt_description || result.id,
+                  author: result.user.name,
+                  url: result.links.html,
+                });
+
+                // Use the download attribute of an <a> element to download the image
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${term}-${result.id}.jpg`;
+                a.click();
+
+                // Clean up the URL and the <a> element
+                URL.revokeObjectURL(url);
+                a.remove();
+
+                // If this is the last image for this search term, create the metadata file
+                if (
+                  imageMetadata.length ===
+                  data.results.length * termsArray.length
+                ) {
+                  createMetadataFile(imageMetadata);
+                }
+              },
+              'image/jpeg',
+              1
+            );
+          };
+        });
+      })
+      .catch((error) => console.log(error));
+  });
+}
+
+function createMetadataFile(metadata) {
+  // Convert the metadata array to a string
+  const metadataString = metadata
+    .map((image) => `${image.url},${image.name},${image.author},CC0`)
+    .join('\n');
+
+  // Create a Blob object for the metadata string
+  const metadataBlob = new Blob([metadataString], { type: 'text/plain' });
+
+  // Use the download attribute of an <a> element to download the metadata file
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(metadataBlob);
+  a.download = 'metadata.txt';
+  a.click();
+
+  // Clean up the URL and the <a> element
+  URL.revokeObjectURL(a.href);
+  a.remove();
+}
+document.querySelector('.search').addEventListener('click', searchImages);
