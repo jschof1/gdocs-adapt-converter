@@ -256,11 +256,12 @@ function searchImages() {
 
   // Create an array to hold the image metadata
   const imageMetadata = [];
+  let results = document.querySelector('.dl-results').value;
 
   // Loop through each search term and fetch the corresponding images
   termsArray.forEach((term) => {
     fetch(
-      `https://api.unsplash.com/search/photos?query=${term}&per_page=1&client_id=${accessKey}`
+      `https://api.unsplash.com/search/photos?query=${term}&per_page=${results}&client_id=${accessKey}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -274,10 +275,13 @@ function searchImages() {
           // Wait for the image to load and then create a canvas element to draw the image as a 500x500 square
           img.onload = function () {
             const canvas = document.createElement('canvas');
-            canvas.width = 1000;
-            canvas.height = 1000;
+            const size = Math.min(img.width, img.height); // get the minimum dimension of the image
+            canvas.width = size;
+            canvas.height = size;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, 1000, 1000);
+            const x = (img.width - size) / 2; // calculate the x-coordinate for the top-left corner of the crop area
+            const y = (img.height - size) / 2; // calculate the y-coordinate for the top-left corner of the crop area
+            ctx.drawImage(img, x, y, size, size, 0, 0, size, size); // draw the cropped image on the canvas
 
             // Convert the canvas element to a Blob object and create a URL for the Blob
             canvas.toBlob(
