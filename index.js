@@ -244,78 +244,51 @@ function buildObjectFromHtml(htmlString) {
   const downloadButton2 = document.getElementById('component');
   downloadButton2.href = downloadJSON(finalBlocks);
 }
-
 const accessKey = '9LXDDGlaugPL-wa3s3wDSs5iNZOfdy8WW5DSLqg8-e0';
-const url = `https://api.unsplash.com/photos/random/?client_id=${accessKey}`;
+
 function searchImages() {
-  // Get the search terms from the text area
   const searchTerms = document.getElementById('searchTerms').value;
-
-  // Split the search terms into an array
   const termsArray = searchTerms.split('\n');
-
-  // Create an array to hold the image metadata
   const imageMetadata = [];
   let results = document.querySelector('.dl-results').value;
+  const dimensions = document.getElementById('cropDimensions').value;
+  const [targetWidth, targetHeight] = dimensions.split('x').map(Number);
 
-  // Loop through each search term and fetch the corresponding images
   termsArray.forEach((term) => {
     fetch(
       `https://api.unsplash.com/search/photos?query=${term}&per_page=${results}&client_id=${accessKey}`
     )
       .then((response) => response.json())
       .then((data) => {
-        // Loop through each image URL and download the image
         data.results.forEach((result) => {
-          // Create an <img> element with the src attribute set to the image URL
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.src = result.urls.raw;
 
-          // Wait for the image to load and then create a canvas element to draw the image as a 500x500 square
           img.onload = function () {
-            const canvas = document.createElement('canvas');
-            const size = Math.min(img.width, img.height); // get the minimum dimension of the image
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const x = (img.width - size) / 2; // calculate the x-coordinate for the top-left corner of the crop area
-            const y = (img.height - size) / 2; // calculate the y-coordinate for the top-left corner of the crop area
-            ctx.drawImage(img, x, y, size, size, 0, 0, size, size); // draw the cropped image on the canvas
+            const resizedImage = resizeImage(img, targetWidth, targetHeight);
 
-            // Convert the canvas element to a Blob object and create a URL for the Blob
-            canvas.toBlob(
-              (blob) => {
-                const url = URL.createObjectURL(blob);
+            resizedImage.onload = () => {
+              const url = resizedImage.src;
 
-                // Add the image metadata to the imageMetadata array
-                imageMetadata.push({
-                  name: result.alt_description || result.id,
-                  author: result.user.name,
-                  url: result.links.html,
-                });
+              imageMetadata.push({
+                name: result.alt_description || result.id,
+                author: result.user.name,
+                url: result.links.html,
+              });
 
-                // Use the download attribute of an <a> element to download the image
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${term}-${result.id}.jpg`;
-                a.click();
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${term}-${result.id}.jpg`;
+              a.click();
 
-                // Clean up the URL and the <a> element
-                URL.revokeObjectURL(url);
-                a.remove();
-
-                // If this is the last image for this search term, create the metadata file
-                if (
-                  imageMetadata.length ===
-                  data.results.length * termsArray.length
-                ) {
-                  createMetadataFile(imageMetadata);
-                }
-              },
-              'image/jpeg',
-              1
-            );
+              if (
+                imageMetadata.length ===
+                data.results.length * termsArray.length
+              ) {
+                createMetadataFile(imageMetadata);
+              }
+            };
           };
         });
       })
@@ -323,23 +296,34 @@ function searchImages() {
   });
 }
 
+function resizeImage(image, targetWidth, targetHeight) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  const resizedImage = new Image();
+  resizedImage.src = canvas.toDataURL('image/jpeg');
+  return resizedImage;
+}
+
 function createMetadataFile(metadata) {
-  // Convert the metadata array to a string
   const metadataString = metadata
     .map((image) => `${image.url},${image.name},${image.author},CC0`)
     .join('\n');
 
-  // Create a Blob object for the metadata string
   const metadataBlob = new Blob([metadataString], { type: 'text/plain' });
 
-  // Use the download attribute of an <a> element to download the metadata file
   const a = document.createElement('a');
   a.href = URL.createObjectURL(metadataBlob);
   a.download = 'metadata.txt';
   a.click();
 
-  // Clean up the URL and the <a> element
   URL.revokeObjectURL(a.href);
   a.remove();
 }
+
 document.querySelector('.search').addEventListener('click', searchImages);
