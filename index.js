@@ -327,3 +327,115 @@ function createMetadataFile(metadata) {
 }
 
 document.querySelector('.search').addEventListener('click', searchImages);
+function trackingIdEditor() {
+  // Get the textarea by its ID (replace 'textareaId' with the actual ID)
+  const textarea = document.getElementById('insertIdBlocks');
+
+  // Parse the textarea's value into an array
+  let arr;
+  try {
+    arr = JSON.parse(textarea.value.trim());
+  } catch (e) {
+    console.error('Invalid JSON in textarea:', e);
+    return;
+  }
+
+  // Ensure the parsed JSON is actually an array
+  if (!Array.isArray(arr)) {
+    console.error('Parsed JSON is not an array:', arr);
+    return;
+  }
+
+  // Modify the array
+  arr.forEach((obj, index) => {
+    obj._trackingId = index + 1;
+  });
+
+  // Generate the new JSON string
+  const newJson = JSON.stringify(arr, null, 2);
+
+  // Replace the textarea's content with the new JSON
+  textarea.value = newJson;
+
+  // Copy the new JSON to the clipboard
+  navigator.clipboard.writeText(newJson).then(
+    () => {
+      console.log('New JSON copied to clipboard');
+    },
+    () => {
+      console.error('Failed to copy new JSON to clipboard');
+      // If the clipboard write failed, select the text in the textarea
+      textarea.select();
+    }
+  );
+}
+
+// Create a button for the trackingIdEditor function
+const buttonTrack = document.getElementById('trackingIdButton');
+buttonTrack.onclick = trackingIdEditor;
+document.body.appendChild(buttonTrack);
+
+function updateParent() {
+  function updateParent() {
+    const parentArea = document.getElementById('parentArea');
+    const childArea = document.getElementById('childArea');
+
+    // Parse the parent and child arrays from the textareas
+    let parents;
+    let children;
+    try {
+      parents = JSON.parse(parentArea.value.trim());
+      children = JSON.parse(childArea.value.trim());
+    } catch (e) {
+      console.error('Invalid JSON in textarea:', e);
+      return;
+    }
+
+    // Ensure the parsed JSON are arrays and have the correct properties
+    if (!Array.isArray(parents) || !Array.isArray(children)) {
+      console.error('Parsed JSON does not match the expected format');
+      return;
+    }
+
+    // Loop through the parent objects
+    parents.forEach((parent) => {
+      // Check if each parent object has the necessary properties
+      if (!(parent instanceof Object) || !parent._id) {
+        console.error(
+          'Parent object does not match the expected format:',
+          parent
+        );
+        return;
+      }
+
+      // Loop through the child objects
+      children.forEach((child) => {
+        // Check if each child object has the necessary properties
+        if (
+          !(child instanceof Object) ||
+          !child._parentId ||
+          !child.title ||
+          child._component === 'graphic'
+        ) {
+          return;
+        }
+
+        // If the child's parent ID matches the parent's ID, replace the parent's title with the child's title
+        if (child._parentId === parent._id) {
+          parent.title = child.title;
+        }
+      });
+    });
+
+    // Write the updated parent array back to its textarea
+    parentArea.value = JSON.stringify(parents, null, 2);
+  }
+
+  // Attach the event listener to the button
+  document
+    .getElementById('updateButton')
+    .addEventListener('click', updateParent);
+}
+
+// Attach the event listener to the button
+document.getElementById('updateButton').addEventListener('click', updateParent);
