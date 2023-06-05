@@ -375,67 +375,79 @@ const buttonTrack = document.getElementById('trackingIdButton');
 buttonTrack.onclick = trackingIdEditor;
 document.body.appendChild(buttonTrack);
 
-function updateParent() {
-  function updateParent() {
-    const parentArea = document.getElementById('parentArea');
-    const childArea = document.getElementById('childArea');
+function updateParentAndChild() {
+  const parentArea = document.getElementById('parentArea');
+  const childArea = document.getElementById('childArea');
 
-    // Parse the parent and child arrays from the textareas
-    let parents;
-    let children;
-    try {
-      parents = JSON.parse(parentArea.value.trim());
-      children = JSON.parse(childArea.value.trim());
-    } catch (e) {
-      console.error('Invalid JSON in textarea:', e);
-      return;
-    }
-
-    // Ensure the parsed JSON are arrays and have the correct properties
-    if (!Array.isArray(parents) || !Array.isArray(children)) {
-      console.error('Parsed JSON does not match the expected format');
-      return;
-    }
-
-    // Loop through the parent objects
-    parents.forEach((parent) => {
-      // Check if each parent object has the necessary properties
-      if (!(parent instanceof Object) || !parent._id) {
-        console.error(
-          'Parent object does not match the expected format:',
-          parent
-        );
-        return;
-      }
-
-      // Loop through the child objects
-      children.forEach((child) => {
-        // Check if each child object has the necessary properties
-        if (
-          !(child instanceof Object) ||
-          !child._parentId ||
-          !child.title ||
-          child._component === 'graphic'
-        ) {
-          return;
-        }
-
-        // If the child's parent ID matches the parent's ID, replace the parent's title with the child's title
-        if (child._parentId === parent._id) {
-          parent.title = child.title;
-        }
-      });
-    });
-
-    // Write the updated parent array back to its textarea
-    parentArea.value = JSON.stringify(parents, null, 2);
+  // Parse the parent and child arrays from the textareas
+  let parents;
+  let children;
+  try {
+    parents = JSON.parse(parentArea.value.trim());
+    children = JSON.parse(childArea.value.trim());
+  } catch (e) {
+    console.error('Invalid JSON in textarea:', e);
+    return;
   }
 
-  // Attach the event listener to the button
-  document
-    .getElementById('updateButton')
-    .addEventListener('click', updateParent);
+  // Ensure the parsed JSON are arrays and have the correct properties
+  if (!Array.isArray(parents) || !Array.isArray(children)) {
+    console.error('Parsed JSON does not match the expected format');
+    return;
+  }
+
+  let parentIdChildrenMap = {};
+
+  // First pass - build the parent ID to children map
+  children.forEach((child) => {
+    if (!parentIdChildrenMap[child._parentId]) {
+      parentIdChildrenMap[child._parentId] = [];
+    }
+    parentIdChildrenMap[child._parentId].push(child);
+  });
+
+  // Loop through the parent objects
+  parents.forEach((parent) => {
+    // Check if each parent object has the necessary properties
+    if (!(parent instanceof Object) || !parent._id) {
+      console.error(
+        'Parent object does not match the expected format:',
+        parent
+      );
+      return;
+    }
+
+    // Loop through the child objects related to the parent
+    parentIdChildrenMap[parent._id]?.forEach((child) => {
+      // If the child's parent ID matches the parent's ID, replace the parent's title with the child's title
+      if (child.title && child._component !== 'graphic') {
+        parent.title = child.title;
+      }
+    });
+  });
+
+  // Second pass - update the titles of the graphic components
+  Object.values(parentIdChildrenMap).forEach((children) => {
+    let siblingTitle;
+    let graphicChild;
+    children.forEach((child) => {
+      if (child._component === 'graphic') {
+        graphicChild = child;
+      } else if (child.title) {
+        siblingTitle = child.title;
+      }
+    });
+    if (graphicChild && siblingTitle) {
+      graphicChild.title = 'Graphic for ' + siblingTitle;
+    }
+  });
+
+  // Write the updated parent array and child array back to their textareas
+  parentArea.value = JSON.stringify(parents, null, 2);
+  childArea.value = JSON.stringify(children, null, 2);
 }
 
 // Attach the event listener to the button
-document.getElementById('updateButton').addEventListener('click', updateParent);
+document
+  .getElementById('updateButton')
+  .addEventListener('click', updateParentAndChild);
