@@ -14,7 +14,6 @@ body {
   box-shadow: 0 0 0 2px rgba(70, 146, 190), 0 3px 8px 0 rgba(70, 146, 190);
 }
 
-
 #html-input-file,
 button {
   margin: 10px;
@@ -49,22 +48,23 @@ button:not(:disabled):focus {
 }
 
 textarea {
-margin-top: 10px;
-width: 100%;
-height: 150px;
-padding: 12px 20px;
-box-sizing: border-box;
-border: 2px solid #ccc;
-border-radius: 4px;
-background-color: #f8f8f8;
-font-size: 16px;
-resize: none;
+  margin-top: 10px;
+  width: 100%;
+  height: 150px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 16px;
+  resize: none;
 }
 
 .container-two {
   display: flex;
 }
 
-#parentArea, #childArea {
-  margin: 4px
+#parentArea,
+#childArea {
+  margin: 4px;
 }
