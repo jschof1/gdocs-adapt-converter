@@ -370,10 +370,9 @@ function trackingIdEditor() {
   );
 }
 
-// Create a button for the trackingIdEditor function
-const buttonTrack = document.getElementById('trackingIdButton');
-buttonTrack.onclick = trackingIdEditor;
-document.body.appendChild(buttonTrack);
+document
+  .getElementById('trackingIdButton')
+  .addEventListener('click', trackingIdEditor);
 
 function updateParentAndChild() {
   const parentArea = document.getElementById('parentArea');
@@ -451,3 +450,60 @@ function updateParentAndChild() {
 document
   .getElementById('updateButton')
   .addEventListener('click', updateParentAndChild);
+
+function updateAssesmentNames() {
+  const parentArea = document.getElementById('parentAssementArea');
+  const childArea = document.getElementById('childBlockArea');
+
+  // Parse the parent and child arrays from the textareas
+  let parents;
+  let children;
+  try {
+    parents = JSON.parse(parentArea.value.trim());
+    children = JSON.parse(childArea.value.trim());
+  } catch (e) {
+    console.error('Invalid JSON in textarea:', e);
+    return;
+  }
+
+  // Ensure the parsed JSON are arrays and have the correct properties
+  if (!Array.isArray(parents) || !Array.isArray(children)) {
+    console.error('Parsed JSON does not match the expected format');
+    return;
+  }
+
+  let parentIdChildrenMap = {};
+
+  // First pass - build the parent ID to children map
+  children.forEach((child) => {
+    if (!parentIdChildrenMap[child._parentId]) {
+      parentIdChildrenMap[child._parentId] = [];
+    }
+    parentIdChildrenMap[child._parentId].push(child);
+  });
+
+  // Loop through the parent objects
+  parents.forEach((parent) => {
+    // Check if each parent object has the necessary properties
+    if (!(parent instanceof Object) || !parent._id || !parent._assessment) {
+      // Ignore parent objects where the _assessment property does not exist
+      return;
+    }
+
+    // Loop through the child objects related to the parent
+    parentIdChildrenMap[parent._id]?.forEach((child) => {
+      // If the child's parent ID matches the parent's ID, replace the parent's _assessment._id with the child's title (with spaces replaced by underscores)
+      if (child.title) {
+        parent._assessment._id = child.title.replace(/ /g, '_');
+      }
+    });
+  });
+
+  // Write the updated parent array back to the textarea
+  parentArea.value = JSON.stringify(parents, null, 2);
+}
+
+// Attach the event listener to the button
+document
+  .getElementById('updateArticleButton')
+  .addEventListener('click', updateAssesmentNames);
