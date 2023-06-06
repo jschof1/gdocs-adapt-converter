@@ -507,3 +507,75 @@ function updateAssesmentNames() {
 document
   .getElementById('updateArticleButton')
   .addEventListener('click', updateAssesmentNames);
+
+async function updateComponentsAndAssets() {
+  let assetsJson = JSON.parse(assetsTextarea.value);
+  let componentsJson = JSON.parse(componentsTextarea.value);
+
+  for (let component of componentsJson) {
+    if (component._component !== 'graphic') {
+      let searchTerm = component.title.split(' ')[0]; // Use first word of the title
+
+      let response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${searchTerm}&per_page=1&client_id=${accessKey}`
+      );
+
+      if (response.ok) {
+        let data = await response.json();
+        let result = data.results[0];
+
+        if (result) {
+          let imgName = `${component._id}.jpg`;
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = result.urls.raw;
+          img.onload = function () {
+            const resizedImage = resizeImage(img, targetWidth, targetHeight);
+            resizedImage.onload = () => {
+              const url = resizedImage.src;
+
+              assetsJson[imgName] = {
+                title: result.alt_description || result.id,
+                description: '',
+                source: url,
+                licence: 'CC0',
+                attribution: result.user.name,
+                tags: [],
+              };
+
+              // Find the graphic sibling and update it
+              let graphicSibling = componentsJson.find(
+                (c) => c._component === 'graphic' && c._id === component._id
+              );
+              if (graphicSibling) {
+                graphicSibling._graphic = {
+                  alt: '',
+                  large: `course/en/assets/${imgName}`,
+                  small: `course/en/assets/${imgName}`,
+                  attribution: `<a href=\"${assetsJson[imgName].source}\" target=\"_blank\">${assetsJson[imgName].title}</a> <span class='assetLicence'>[CC-BY-SA]</span>`,
+                };
+              }
+
+              // Download the image
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = imgName;
+              a.click();
+            };
+          };
+        }
+      } else {
+        console.error('Image fetch failed:', response);
+      }
+    }
+  }
+
+  // Update the textarea's content with the new JSONs
+  assetsTextarea.value = JSON.stringify(assetsJson, null, 2);
+  componentsTextarea.value = JSON.stringify(componentsJson, null, 2);
+}
+
+document
+  .getElementById('updateButton')
+  .addEventListener('click', updateComponentsAndAssets);
