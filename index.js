@@ -1,6 +1,119 @@
 // Import stylesheets
 import './style.css';
 
+function prepareJsonTemplate(id, bid) {
+  return {
+    _id: id,
+    _parentId: id,
+    _type: 'component',
+    _component: 'mcq',
+    _classes: '',
+    _layout: 'left',
+    title: 'MCQ',
+    displayTitle: 'MCQ',
+    instruction:
+      'Choose {{#if _isRadio}}one option{{else}}one or more options{{/if}} then select Submit.',
+    ariaQuestion: 'Question text specifically for screen readers.',
+    _attempts: 1,
+    body: 'Which of these statements best describes the trend in average attendance times after the closures?',
+    _shouldDisplayAttempts: false,
+    _isRandom: false,
+    _hasItemScoring: false,
+    _questionWeight: 1,
+    _selectable: 1,
+    _canShowModelAnswer: true,
+    _canShowFeedback: true,
+    _canShowMarking: true,
+    _recordInteraction: true,
+    _items: [],
+    _feedback: {
+      title: 'Feedback',
+      altTitle: 'Alt feedback title text',
+      _incorrect: {
+        notFinal: '',
+      },
+      _partlyCorrect: {
+        notFinal: '',
+        final:
+          'This feedback will appear if you answered the question correctly.',
+      },
+    },
+    _comment:
+      'You only need to include _buttons if you want to override the button labels that are set in course.json',
+    _buttons: {
+      _submit: {
+        buttonText: 'Submit',
+        ariaLabel: 'Select here to submit your answer.',
+      },
+      _reset: {
+        buttonText: 'Reset',
+        ariaLabel: '',
+      },
+      _showCorrectAnswer: {
+        buttonText: 'Correct Answer',
+        ariaLabel: '',
+      },
+      _hideCorrectAnswer: {
+        buttonText: 'My Answer',
+        ariaLabel: '',
+      },
+      _showFeedback: {
+        buttonText: 'Show feedback',
+        ariaLabel: '',
+      },
+      remainingAttemptsText: 'attempts remaining',
+      remainingAttemptText: 'final attempt',
+    },
+    _pageLevelProgress: {
+      _isEnabled: true,
+    },
+  };
+}
+
+function textToJson(textBlock) {
+  let jsons = [];
+  let questions = textBlock.split(/(?=Q\d)/).filter((q) => q.trim() !== '');
+
+  questions.forEach((questionText, qIndex) => {
+    let lines = questionText.split('\n').filter((line) => line.trim() !== '');
+    let json = prepareJsonTemplate('c-0' + (qIndex + 1));
+
+    lines.forEach((line, index) => {
+      if (line.startsWith('Q')) {
+        json.body = line.replace(/^Q\d:/, '').trim();
+      } else if (line === "That's right! / Are you sure about that?") {
+        json._feedback.correct = lines[index + 1];
+        json._feedback._incorrect.final = lines[index + 2];
+      } else {
+        let shouldBeSelected = line.includes('(should be selected)');
+        let answerText = line.replace('(should be selected)', '').trim();
+
+        json._items.push({
+          text: answerText,
+          _shouldBeSelected: shouldBeSelected,
+          _isPartlyCorrect: false,
+        });
+      }
+    });
+
+    jsons.push(json);
+  });
+
+  return jsons;
+}
+
+function convertToJSON() {
+  let inputText = document.getElementById('inputText').value;
+  let output = document.getElementById('output');
+
+  let jsons = textToJson(inputText);
+  inputText.textContent = JSON.stringify(jsons, null, 2);
+}
+
+document
+  .getElementById('convertButton')
+  .addEventListener('click', convertToJSON);
+
 const sanitizeHtml = require('sanitize-html');
 const fileInput = document.getElementById('html-file-input');
 fileInput.addEventListener('change', handleFileSelect, false);
