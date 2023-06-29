@@ -107,7 +107,7 @@ function convertToJSON() {
   let output = document.getElementById('output');
 
   let jsons = textToJson(inputText);
-  inputText.textContent = JSON.stringify(jsons, null, 2);
+  output.textContent = JSON.stringify(jsons, null, 2);
 }
 
 document
