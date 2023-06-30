@@ -1,6 +1,54 @@
 // Import stylesheets
 import './style.css';
 
+const graphic =  {
+  "_component": "graphic",
+  "_classes": "",
+  "_isOptional": false,
+  "_isAvailable": true,
+  "_isHidden": false,
+  "_isVisible": true,
+  "_isResetOnRevisit": "false",
+  "_ariaLevel": 0,
+  "_disableAccessibilityState": false,
+  "title": "Graphic for Are you ready to visualise data?",
+  "displayTitle": "",
+  "body": "",
+  "_id": "649c4920b38aaf6b93ddb8ad",
+  "_layout": "right",
+  "_parentId": "649c4920b38aaf6b93ddb86e",
+  "_type": "component",
+  "_pageLevelProgress": {
+    "_isEnabled": false
+  },
+  "_graphic": {
+    "attribution": "",
+    "small": "course/en/assets/91d7d44849aaa32d953399c315d3338572889c74.png",
+    "large": "course/en/assets/91d7d44849aaa32d953399c315d3338572889c74.png",
+    "alt": ""
+  },
+  "instruction": ""
+}
+
+function generateComponent(component, imageText) {
+  let componentString = "";
+  for (let i = 1; i < 10; i++) {
+    component._graphic.small = `course/en/assets/${imageText+0+i}`
+    component._id = `b-0${i}`;
+    component._parentId = `a-0${i}`;
+    componentString += JSON.stringify(component, null, 2) + ',\n';
+  }
+  return componentString;
+}
+
+const genBtn = document.getElementById('genBtn');
+const textareaId = document.getElementById('genText');
+
+
+genBtn.addEventListener('click', () => {
+  textareaId.value = generateComponent(graphic, "RSWT_data_explore_");
+});
+
 function prepareJsonTemplate(id, bid) {
   return {
     _id: id,
